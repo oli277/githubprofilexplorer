@@ -1,6 +1,9 @@
 import { getRepoUrl } from "@/lib/getQueryParams";
 import type { Repo } from "@/lib/types";
+import { fetchAllRepos } from "@/lib/getQueryParams";
+import Pagination from "./Pagination";
 
+const PAGE_SIZE = 12;
 
 const languageColors: Record<string, string> = {
   TypeScript: "bg-blue-500",
@@ -24,15 +27,25 @@ function timeAgo(date: string) {
 export default async function ReposSearchResults({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string }>;
+  searchParams: Promise<{ query?: string; page?: string }>;
 }) {
-  const { query } = await searchParams;
+  const { query, page } = await searchParams;
   if (!query) return null;
 
   const reposUrl = getRepoUrl({ query })
-  const response = await fetch(reposUrl);
+  const repos: Repo[] = await fetchAllRepos({reposUrl})
 
-  if (!response.ok) {
+  if (repos.length === 0) {
+    return;
+  }
+
+  const totalPages = Math.ceil(repos.length / PAGE_SIZE);
+  const currentPage = Math.min(Math.max(Number(page) || 1, 1), totalPages);
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const visibleRepos = repos.slice(start, start + PAGE_SIZE);
+
+  if (!repos) {
     return (
       <div className="mx-auto mt-10 max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
         <p className="text-4xl">🕵️</p>
@@ -43,8 +56,6 @@ export default async function ReposSearchResults({
       </div>
     );
   }
-
-  const repos: Repo[] = await response.json();
 
   if (repos.length === 0) {
     return (
@@ -66,8 +77,8 @@ export default async function ReposSearchResults({
       </div>
 
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {repos.map((repo) => (
-          <li key={repo.id}>
+  {visibleRepos.map((repo) => (
+    <li key={repo.id}>
             <a
               href={repo.html_url}
               target="_blank"
@@ -104,8 +115,10 @@ export default async function ReposSearchResults({
               </div>
             </a>
           </li>
-        ))}
-      </ul>
+  ))}
+</ul>
+
+<Pagination query={query} currentPage={currentPage} totalPages={totalPages} />
     </section>
   );
 }
