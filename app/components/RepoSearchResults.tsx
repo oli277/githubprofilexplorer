@@ -66,7 +66,7 @@ export default async function ReposSearchResults({
   }
 
   return (
-    <section className="mx-auto mt-10 w-full max-w-6xl px-4">
+    <section className="mx-auto mt-10 w-full max-w-6xl px-4 pb-10">
       <div className="mb-6 flex items-baseline justify-between border-b border-gray-200 pb-3">
         <h2 className="text-xl font-bold text-gray-900">
           Repositories by <span className="text-indigo-600">{query}</span>
