@@ -9,7 +9,7 @@ function getPageNumbers(current: number, total: number): (number | "…")[] {
 
   const result: (number | "…")[] = [];
   pages.forEach((p, i) => {
-    if (i > 0 && p - pages[i - 1] > 1) result.push("…"); // gap → ellipsis
+    if (i > 0 && p - pages[i - 1] > 1) result.push("…"); 
     result.push(p);
   });
   return result;

@@ -10,7 +10,7 @@ function Stat({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
+ 
 function InfoItem({ icon, children }: { icon: string; children: ReactNode }) {
   return (
     <li className="flex items-center gap-2 text-sm text-gray-600">

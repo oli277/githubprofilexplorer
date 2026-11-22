@@ -1,6 +1,7 @@
 import type { User } from "@/lib/types";
 import { getUserUrl } from "@/lib/getQueryParams";
 import UserView from "./UserView";
+import Link from "next/link";
 
 export default async function UserSearchResults({
   searchParams,
@@ -29,7 +30,17 @@ export default async function UserSearchResults({
   const user: User = await response.json()
 
   return(
-    <UserView user={user}/>
+    <>
+       <UserView user={user}/>
+       <Link href={'/compare'}
+            
+            className="shrink-0 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Compare two users?
+          </Link>
+    </>
+ 
+    
   )
 
 }
