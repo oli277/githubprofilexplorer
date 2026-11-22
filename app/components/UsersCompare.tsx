@@ -12,44 +12,52 @@ export default async function UsersCompare({
 
   if (!user1 || !user2) return <h1>No users</h1>;
 
-  const firstUserUrl = getUserUrl({query: user1})
-  const secondUserUrl = getUserUrl({query: user2})
+  const firstUserUrl = getUserUrl({ query: user1 });
+  const secondUserUrl = getUserUrl({ query: user2 });
 
-  const firstUser: User | null = await fetchUser({userUrl: firstUserUrl})
-  const secondUser: User | null = await fetchUser({userUrl: secondUserUrl})
+  const firstUserPromise = fetchUser({ userUrl: firstUserUrl });
+  const secondUserPromise = fetchUser({ userUrl: secondUserUrl });
 
-  if(!firstUser) {
+  const [firstUser, secondUser] = await Promise.all([
+    firstUserPromise,
+    secondUserPromise,
+  ]);
+
+  if (!firstUser) {
     return (
       <div className="mx-auto mt-10 max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
         <p className="text-4xl">🕵️</p>
-        <h2 className="mt-3 text-lg font-semibold text-red-700">User not found</h2>
+        <h2 className="mt-3 text-lg font-semibold text-red-700">
+          User not found
+        </h2>
         <p className="mt-1 text-sm text-red-600">
-          We couldn&apos;t find a GitHub user named &quot;{user1}&quot;. Check the spelling and try again.
+          We couldn&apos;t find a GitHub user named &quot;{user1}&quot;. Check
+          the spelling and try again.
         </p>
       </div>
     );
   }
- 
-   if(!secondUser) {
+
+  if (!secondUser) {
     return (
       <div className="mx-auto mt-10 max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
         <p className="text-4xl">🕵️</p>
-        <h2 className="mt-3 text-lg font-semibold text-red-700">User not found</h2>
+        <h2 className="mt-3 text-lg font-semibold text-red-700">
+          User not found
+        </h2>
         <p className="mt-1 text-sm text-red-600">
-          We couldn&apos;t find a GitHub user named &quot;{user2}&quot;. Check the spelling and try again.
+          We couldn&apos;t find a GitHub user named &quot;{user2}&quot;. Check
+          the spelling and try again.
         </p>
       </div>
     );
   }
 
-  return(
+  return (
     <>
-       <UserView user={firstUser}/>
-       <UserView user={secondUser}/>
-       <UserCompareResults user1={firstUser} user2={secondUser}/>
-      
+      <UserView user={firstUser} />
+      <UserView user={secondUser} />
+      <UserCompareResults user1={firstUser} user2={secondUser} />
     </>
- 
-    
-  )
+  );
 }

@@ -8,39 +8,33 @@ export default async function UserSearchResults({
 }: {
   searchParams: Promise<{ query?: string }>;
 }) {
-    const {query} = await searchParams
-    if(!query) return null
+  const { query } = await searchParams;
+  if (!query) return null;
 
-    const usersUrl = getUserUrl({query})
+  const usersUrl = getUserUrl({ query });
 
-    const response = await fetch(usersUrl)
+  const response = await fetch(usersUrl);
 
-     if (!response.ok) {
+  if (!response.ok) {
     return (
       <div className="mx-auto mt-10 max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
         <p className="text-4xl">🕵️</p>
-        <h2 className="mt-3 text-lg font-semibold text-red-700">User not found</h2>
+        <h2 className="mt-3 text-lg font-semibold text-red-700">
+          User not found
+        </h2>
         <p className="mt-1 text-sm text-red-600">
-          We couldn&apos;t find a GitHub user named &quot;{query}&quot;. Check the spelling and try again.
+          We couldn&apos;t find a GitHub user named &quot;{query}&quot;. Check
+          the spelling and try again.
         </p>
       </div>
     );
   }
 
-  const user: User = await response.json()
+  const user: User = await response.json();
 
-  return(
+  return (
     <>
-       <UserView user={user}/>
-       <Link href={'/compare'}
-            
-            className="shrink-0 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Compare two users?
-          </Link>
+      <UserView user={user} />
     </>
- 
-    
-  )
-
+  );
 }
