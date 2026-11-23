@@ -20,6 +20,7 @@ type CustomMessageProps = {
 
 type ComparisonCardProps = {
   title: string;
+  unit?:string;
   user1: ComparisonUser;
   user2: ComparisonUser;
 } & (DefaultMessageProps | CustomMessageProps); 
@@ -27,6 +28,7 @@ type ComparisonCardProps = {
 export default function ComparisonCard({
   title,
   noun,
+  unit,
   user1,
   user2,
   customMessages,
@@ -57,11 +59,11 @@ export default function ComparisonCard({
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
           <p className="truncate text-sm font-medium text-slate-500">{user1.name}</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{user1.displayValue}</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">{user1.displayValue} {unit}</p>
         </div>
         <div className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
           <p className="truncate text-sm font-medium text-slate-500">{user2.name}</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{user2.displayValue}</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">{user2.displayValue} {unit}</p>
         </div>
       </div>
 

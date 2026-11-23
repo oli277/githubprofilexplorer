@@ -35,9 +35,6 @@ export default async function ReposSearchResults({
   const reposUrl = getRepoUrl({ query })
   const repos: Repo[] = await fetchAllRepos({reposUrl})
 
-  if (repos.length === 0) {
-    return;
-  }
 
   const totalPages = Math.ceil(repos.length / PAGE_SIZE);
   const currentPage = Math.min(Math.max(Number(page) || 1, 1), totalPages);
@@ -79,7 +76,7 @@ export default async function ReposSearchResults({
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
   {visibleRepos.map((repo) => (
     <li key={repo.id}>
-            <a
+            <a 
               href={repo.html_url}
               target="_blank"
               rel="noopener noreferrer"

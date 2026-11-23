@@ -59,7 +59,9 @@ function formatDuration(from: Date, to: Date): string {
 
   if (days < 0) {
     months -= 1;
-    const prevMonth = new Date(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), 0));
+    const prevMonth = new Date(
+      Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), 0),
+    );
     days += prevMonth.getUTCDate();
   }
   if (months < 0) {
@@ -70,22 +72,105 @@ function formatDuration(from: Date, to: Date): string {
   const parts: string[] = [];
   if (years) parts.push(`${years} year${years === 1 ? "" : "s"}`);
   if (months) parts.push(`${months} month${months === 1 ? "" : "s"}`);
-  if (!years && !months && days) parts.push(`${days} day${days === 1 ? "" : "s"}`);
+  if (!years && !months && days)
+    parts.push(`${days} day${days === 1 ? "" : "s"}`);
   return parts.join(", ") || "today";
 }
 
-export function getUserValues({ user }: { user: User }) {
+export async function getReposArray({ user }: { user: User }) {
+  const reposUrl = getRepoUrl({ query: user.login });
+  const repos: Repo[] = await fetchAllRepos({ reposUrl });
+  return repos;
+}
 
-    const accDate = new Date(user.created_at)
-    const today = new Date()
+export function getRepoValues({ repos }: { repos: Repo[] }) {
+  const originalRepos: Repo[] = [];
+  const forks: Repo[] = [];
 
-      const accountAgeInDays = Math.floor(
-    (today.getTime() - accDate.getTime()) / (1000 * 60 * 60 * 24)
+  for (let repo of repos) {
+    repo.fork ? forks.push(repo) : originalRepos.push(repo);
+  }
+
+  let ogStarsCount = 0;
+
+  for (let repo of originalRepos) {
+    ogStarsCount += repo.stargazers_count;
+  }
+
+  const total = originalRepos.length + forks.length;
+
+  const ogPercent =
+    total > 0
+      ? Math.round((originalRepos.length / total) * 100 * 100) / 100
+      : 0;
+
+  const forksPercent =
+    total > 0 ? Math.round((forks.length / total) * 100 * 100) / 100 : 0;
+
+  const repoObject = {
+    ogStarsCount: ogStarsCount,
+    forksPercent: forksPercent,
+    ogPercent: ogPercent,
+  };
+
+  return repoObject;
+}
+
+function mode(arr: string[]): string | null {
+  if (arr.length === 0) return null;
+
+  const counts = new Map<string, number>();
+  for (const item of arr) {
+    counts.set(item, (counts.get(item) ?? 0) + 1);
+  }
+
+  let best = arr[0];
+  let bestCount = 0;
+  for (const [item, count] of counts) {
+    if (count > bestCount) {
+      best = item;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+// export function getLastActive(repos: Repo[]): Date | null {
+//   if (repos.length === 0) return null;
+
+//   let latestMs = -Infinity;
+//   for (const repo of repos) {
+//     const ms = new Date(repo.updated_at).getTime();
+//     if (ms > latestMs) latestMs = ms;
+//   }
+//   return new Date(latestMs);
+// }
+
+export function getLastActive(repos: Repo[]): number | null {
+  const MS_PER_DAY = 86_400_000
+  if (repos.length === 0) return null;
+
+  const now = Date.now();
+  let latestMs = -Infinity;
+
+  for (const repo of repos) {
+    const ms = new Date(repo.updated_at).getTime();
+    if (ms > latestMs) latestMs = ms;
+  }
+
+  return Math.floor((now - latestMs) / MS_PER_DAY);
+}
+
+export function getUserValues({ user, repos }: { user: User; repos: Repo[] }) {
+  const accDate = new Date(user.created_at);
+  const today = new Date();
+
+  const accountAgeInDays = Math.floor(
+    (today.getTime() - accDate.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   const accountAgeInYears = Math.floor(accountAgeInDays / 365);
 
-  
   const accountAge = formatDuration(accDate, today);
 
   const joined = accDate.toLocaleDateString("en-US", {
@@ -95,8 +180,21 @@ export function getUserValues({ user }: { user: User }) {
     timeZone: "UTC",
   });
 
+  const reposObject = getRepoValues({ repos });
 
+  const { ogStarsCount, forksPercent, ogPercent } = reposObject;
 
+  const langs: string[] = []
+
+  for(let repo of repos){
+    if(repo.language) langs.push(repo.language)
+  }
+
+  const modeLang = mode(langs)
+
+  const lastActive = getLastActive(repos) ? getLastActive(repos) : 0
+
+  
   const userObject = {
     name: user.name ?? user.login,
     followers: user.followers,
@@ -107,8 +205,13 @@ export function getUserValues({ user }: { user: User }) {
     joined: joined,
     accountAgeInYears: accountAgeInYears,
     accountAgeInDays: accountAgeInDays,
-    accDate: accDate
+    accDate: accDate,
+    ogStarsCount: ogStarsCount,
+    forksPercent: forksPercent,
+    ogPercent: ogPercent,
+    modeLang: modeLang,
+    lastActive: lastActive
   };
 
-  return userObject
+  return userObject;
 }
