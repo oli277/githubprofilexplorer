@@ -135,17 +135,6 @@ function mode(arr: string[]): string | null {
   return best;
 }
 
-// export function getLastActive(repos: Repo[]): Date | null {
-//   if (repos.length === 0) return null;
-
-//   let latestMs = -Infinity;
-//   for (const repo of repos) {
-//     const ms = new Date(repo.updated_at).getTime();
-//     if (ms > latestMs) latestMs = ms;
-//   }
-//   return new Date(latestMs);
-// }
-
 export function getLastActive(repos: Repo[]): number | null {
   const MS_PER_DAY = 86_400_000
   if (repos.length === 0) return null;
