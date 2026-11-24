@@ -97,20 +97,9 @@ export function getRepoValues({ repos }: { repos: Repo[] }) {
     ogStarsCount += repo.stargazers_count;
   }
 
-  const total = originalRepos.length + forks.length;
-
-  const ogPercent =
-    total > 0
-      ? Math.round((originalRepos.length / total) * 100 * 100) / 100
-      : 0;
-
-  const forksPercent =
-    total > 0 ? Math.round((forks.length / total) * 100 * 100) / 100 : 0;
 
   const repoObject = {
     ogStarsCount: ogStarsCount,
-    forksPercent: forksPercent,
-    ogPercent: ogPercent,
   };
 
   return repoObject;
@@ -171,7 +160,7 @@ export function getUserValues({ user, repos }: { user: User; repos: Repo[] }) {
 
   const reposObject = getRepoValues({ repos });
 
-  const { ogStarsCount, forksPercent, ogPercent } = reposObject;
+  const { ogStarsCount } = reposObject;
 
   const langs: string[] = []
 
@@ -196,8 +185,6 @@ export function getUserValues({ user, repos }: { user: User; repos: Repo[] }) {
     accountAgeInDays: accountAgeInDays,
     accDate: accDate,
     ogStarsCount: ogStarsCount,
-    forksPercent: forksPercent,
-    ogPercent: ogPercent,
     modeLang: modeLang,
     lastActive: lastActive
   };
