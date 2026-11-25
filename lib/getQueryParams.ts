@@ -5,11 +5,16 @@ export function cleanQuery({ query }: { query: string }) {
   return cleanedQuery;
 }
 
-export function getRepoUrl({ query }: { query: string }) {
-  const cleanedQuery = cleanQuery({ query });
-  const updatedQuery = `https://api.github.com/users/${encodeURIComponent(cleanedQuery)}/repos?per_page=100&sort=updated`;
+// export function getRepoUrl({ query }: { query: string }) {
+//   const cleanedQuery = cleanQuery({ query });
+//   const updatedQuery = `https://api.github.com/users/${encodeURIComponent(cleanedQuery)}/repos?per_page=100&sort=updated`;
 
-  return updatedQuery;
+//   return updatedQuery;
+// }
+
+export function getRepoUrl({ query }: { query: string }) {
+  const login = encodeURIComponent(cleanQuery({ query }));
+  return `https://api.github.com/users/${login}/repos`;
 }
 
 export function getUserUrl({ query }: { query: string }) {
@@ -27,10 +32,19 @@ export async function fetchAllRepos({
   const all: Repo[] = [];
 
   for (let page = 1; page <= 10; page++) {
-    const response = await fetch(
-      `${reposUrl}?per_page=100&page=${page}&sort=updated`,
-    );
-    if (!response.ok) break;
+    // const response = await fetch(
+    //   `${reposUrl}?per_page=100&page=${page}&sort=updated`,
+    // );
+
+    const params = new URLSearchParams({
+      per_page: "100",
+      page: String(page),
+      sort: "updated",
+    });
+    const response = await fetch(`${reposUrl}?${params}`);
+
+    if (!response.ok)
+      throw new Error(`GitHub repos request failed: ${response.status}`);
 
     const repos: Repo[] = await response.json();
     all.push(...repos);
@@ -47,7 +61,9 @@ export async function fetchUser({
   userUrl: string;
 }): Promise<User | null> {
   const response = await fetch(userUrl);
-  if (!response.ok) return null;
+  if (response.status === 404) return null;
+  if (!response.ok)
+    throw new Error(`GitHub user request failed: ${response.status}`);
 
   return await response.json();
 }
@@ -97,7 +113,6 @@ export function getRepoValues({ repos }: { repos: Repo[] }) {
     ogStarsCount += repo.stargazers_count;
   }
 
-
   const repoObject = {
     ogStarsCount: ogStarsCount,
   };
@@ -125,7 +140,7 @@ function mode(arr: string[]): string | null {
 }
 
 export function getLastActive(repos: Repo[]): number | null {
-  const MS_PER_DAY = 86_400_000
+  const MS_PER_DAY = 86_400_000;
   if (repos.length === 0) return null;
 
   const now = Date.now();
@@ -162,17 +177,16 @@ export function getUserValues({ user, repos }: { user: User; repos: Repo[] }) {
 
   const { ogStarsCount } = reposObject;
 
-  const langs: string[] = []
+  const langs: string[] = [];
 
-  for(let repo of repos){
-    if(repo.language) langs.push(repo.language)
+  for (let repo of repos) {
+    if (repo.language) langs.push(repo.language);
   }
 
-  const modeLang = mode(langs)
+  const modeLang = mode(langs);
 
-  const lastActive = getLastActive(repos) ? getLastActive(repos) : 0
+  const lastActive = getLastActive(repos);
 
-  
   const userObject = {
     name: user.name ?? user.login,
     followers: user.followers,
@@ -186,7 +200,7 @@ export function getUserValues({ user, repos }: { user: User; repos: Repo[] }) {
     accDate: accDate,
     ogStarsCount: ogStarsCount,
     modeLang: modeLang,
-    lastActive: lastActive
+    lastActive: lastActive,
   };
 
   return userObject;
