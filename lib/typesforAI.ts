@@ -36,5 +36,5 @@ export const RepoSchema = z.object({
 });
  
 
-export type Review = z.infer<typeof UserSchema>;
-export type Product = z.infer<typeof RepoSchema>;
+export type Review = z.infer<typeof UserSchema>
+export type Product = z.infer<typeof RepoSchema>
