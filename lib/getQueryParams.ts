@@ -1,16 +1,10 @@
 import { Repo, User } from "./types";
+import { GithubRepo, GithubUser, RepoSchema } from "./typesforAI";
 
 export function cleanQuery({ query }: { query: string }) {
   const cleanedQuery = query.trim();
   return cleanedQuery;
 }
-
-// export function getRepoUrl({ query }: { query: string }) {
-//   const cleanedQuery = cleanQuery({ query });
-//   const updatedQuery = `https://api.github.com/users/${encodeURIComponent(cleanedQuery)}/repos?per_page=100&sort=updated`;
-
-//   return updatedQuery;
-// }
 
 export function getRepoUrl({ query }: { query: string }) {
   const login = encodeURIComponent(cleanQuery({ query }));
@@ -32,9 +26,6 @@ export async function fetchAllRepos({
   const all: Repo[] = [];
 
   for (let page = 1; page <= 10; page++) {
-    // const response = await fetch(
-    //   `${reposUrl}?per_page=100&page=${page}&sort=updated`,
-    // );
 
     const params = new URLSearchParams({
       per_page: "100",
@@ -60,6 +51,19 @@ export async function fetchUser({
 }: {
   userUrl: string;
 }): Promise<User | null> {
+  const response = await fetch(userUrl);
+  if (response.status === 404) return null;
+  if (!response.ok)
+    throw new Error(`GitHub user request failed: ${response.status}`);
+
+  return await response.json();
+}
+
+export async function fetchUserforAI({
+  userUrl,
+}: {
+  userUrl: string;
+}): Promise<GithubUser | null> {
   const response = await fetch(userUrl);
   if (response.status === 404) return null;
   if (!response.ok)
@@ -204,4 +208,25 @@ export function getUserValues({ user, repos }: { user: User; repos: Repo[] }) {
   };
 
   return userObject;
+}
+
+
+export async function getUserRepos(login: string): Promise<GithubRepo[]> {
+  const res = await fetch(
+    `https://api.github.com/users/${login}/repos?per_page=100&sort=updated`,
+    {
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...(process.env.GITHUB_TOKEN && {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        }),
+      },
+      next: { revalidate: 3600 }, // user repos change slowly
+    }
+  );
+  if (!res.ok) {
+    throw new Error(`GitHub API ${res.status} for ${login}`);
+  }
+  const json = await res.json();
+  return RepoSchema.array().parse(json);
 }
